@@ -605,6 +605,25 @@ class TestGenericPytree(TestCase):
             run_test(case)
 
     @parametrize_pytree_module
+    def test_tree_map_many_inputs(self, pytree):
+        tree = {"a": [1, 2], "b": (3, {"c": 4})}
+        num_rests = 6
+        rest = [
+            pytree.tree_map(lambda x, shift=shift: x + shift, tree)
+            for shift in range(1, num_rests + 1)
+        ]
+
+        result = pytree.tree_map(lambda *xs: sum(xs), tree, *rest)
+
+        shift_total = num_rests * (num_rests + 1) // 2
+        expected = pytree.tree_map(
+            lambda x: (num_rests + 1) * x + shift_total,
+            tree,
+        )
+
+        self.assertEqual(result, expected)
+
+    @parametrize_pytree_module
     def test_tree_map_only(self, pytree):
         self.assertEqual(pytree.tree_map_only(int, lambda x: x + 2, [0, "a"]), [2, "a"])
 
